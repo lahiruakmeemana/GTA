@@ -8,7 +8,7 @@ from models.gta import GTA
 
 from utils.tools import EarlyStopping, adjust_learning_rate
 from utils.metrics import metric
-from sklearn.metrics import classification_report
+from sklearn.metrics import classification_report,auc,roc_curve
 
 import numpy as np
 
@@ -62,6 +62,7 @@ class Exp_GTA_DAD(Exp_Basic):
             'MSL':NASA_Anomaly,
             'WADI':WADI,
             'SWaT':SWaT,
+            'our':NASA_Anomaly
         }
         Data = data_dict[self.args.data]
 
@@ -195,7 +196,7 @@ class Exp_GTA_DAD(Exp_Basic):
 
             adjust_learning_rate(model_optim, epoch+1, self.args)
             
-        best_model_path = path+'/'+'checkpoint.pth'
+        best_model_path = "checkpoints/gta_our_ftM_sl12_ll12_pl12_nl3_dm176_nh4_el3_dl2_df176_atprob_ebfixed_test_0/checkpoint.pth" #path+'/'+'checkpoint.pth'
         self.model.load_state_dict(torch.load(best_model_path))
         
         return self.model
@@ -246,12 +247,40 @@ class Exp_GTA_DAD(Exp_Basic):
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
 
+        new_preds = preds.reshape(-1,preds.shape[2])[:,-1]
+        new_trues = labels.reshape(-1,1)
+        print('metrics shape:', new_preds.shape, new_trues.shape,labels.shape)
+        # print(new_preds[0:100])
+        true_positives = 0
+        false_positives = 0
+        true_negatives = 0
+        false_negatives = 0
+        for (x,y) in zip(new_preds,new_trues):
+            # print(x)
+            if x>=0.5 and y==1:
+                true_positives+=1
+            elif x>=0.5 and y==0:
+                false_positives+=1
+            elif x<0.5 and y==0:
+                true_negatives+=1
+            else:
+                false_negatives+=1
+
+        sensitivity = true_positives / (true_positives+false_negatives)
+        specificity = true_negatives / (true_negatives+false_positives)
+        accuracy = (true_positives+true_negatives) / len(new_preds)
+        print('sensitivity new pred: ',sensitivity)
+        print('specificity new pred: ',specificity)
+        print('accuracy new pred: ',accuracy)
+        fpr, tpr, thresholds = roc_curve(new_trues, new_preds)
+        print("AUC: ",auc(fpr, tpr))
+
         mae, mse, rmse, mape, mspe = metric(preds, trues)
         print('mse:{}, mae:{}'.format(mse, mae))
 
-        np.save(folder_path+'metrics.npy', np.array([mae, mse, rmse, mape, mspe]))
-        np.save(folder_path+'pred.npy', preds)
-        np.save(folder_path+'true.npy', trues)
-        np.save(folder_path+'label.npy', labels)
+        # np.save(folder_path+'metrics.npy', np.array([mae, mse, rmse, mape, mspe]))
+        # np.save(folder_path+'pred.npy', preds)
+        # np.save(folder_path+'true.npy', trues)
+        # np.save(folder_path+'label.npy', labels)
 
         return

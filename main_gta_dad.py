@@ -33,16 +33,16 @@ parser.add_argument('--embed', type=str, default='fixed', help='embedding type [
 parser.add_argument('--activation', type=str, default='gelu',help='activation')
 parser.add_argument('--num_workers', type=int, default=0, help='data loader num workers')
 
-parser.add_argument('--itr', type=int, default=2, help='each params run iteration')
+parser.add_argument('--itr', type=int, default=1, help='each params run iteration')
 parser.add_argument('--train_epochs', type=int, default=6, help='train epochs')
 parser.add_argument('--batch_size', type=int, default=32, help='input data batch size')
-parser.add_argument('--patience', type=int, default=3, help='early stopping patience')
+parser.add_argument('--patience', type=int, default=10, help='early stopping patience')
 parser.add_argument('--learning_rate', type=float, default=0.0001, help='optimizer learning rate')
 parser.add_argument('--des', type=str, default='test',help='exp description')
 parser.add_argument('--loss', type=str, default='mse',help='loss function')
 parser.add_argument('--lradj', type=str, default='type1',help='adjust learning rate')
 
-parser.add_argument('--use_gpu', type=bool, default=True, help='use gpu')
+parser.add_argument('--use_gpu', type=bool, default=False, help='use gpu')
 parser.add_argument('--gpu', type=int, default=0, help='gpu')
 
 args = parser.parse_args()
@@ -57,11 +57,11 @@ data_parser = {
     'MSL':{'data':'MSL','T':0,'M':55,'S':1},
     'SWaT':{'data':'SWaT','T':'FIT_101','M':51,'S':1}
 }
-if args.data in data_parser.keys():
-    data_info = data_parser[args.data]
-    args.data_path = data_info['data']
-    args.target = data_info['T']
-    args.num_nodes = data_info[args.features]
+# if args.data in data_parser.keys():
+#     data_info = data_parser[args.data]
+#     args.data_path = data_info['data']
+#     args.target = data_info['T']
+#     args.num_nodes = data_info[args.features]
 
 Exp = Exp_GTA_DAD
 
@@ -76,3 +76,7 @@ for ii in range(args.itr):
     
     print('>>>>>>>testing : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))
     exp.test(setting)
+
+
+# python -u main_gta_dad.py --model gta --data our --root_path data/our/ --data_path train.csv --features M --target label --seq_len 24 --label_len 24 --pred_len 24 --num_nodes 240 --d_model 176 --n_heads 4 --e_layers 3 --d_layers 2 --d_ff 176 --factor 3 --dropout 0.2 --attn prob --embed fixed --activation gelu --train_epochs 10 --itr 1 --batch_size 360 --learning_rate 0.005 --loss mse --use_gpu False
+# python -u main_gta_dad.py --model gta --data our --root_path data/our/ --data_path train.csv --features M --target label --seq_len 16 --label_len 12 --pred_len 12 --num_nodes 240 --d_model 176 --n_heads 4 --e_layers 3 --d_layers 2 --d_ff 176 --factor 3 --dropout 0.2 --attn prob --embed fixed --activation gelu --train_epochs 5 --itr 1 --batch_size 240 --learning_rate 0.005 --loss mse --use_gpu False

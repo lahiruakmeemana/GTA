@@ -14,7 +14,7 @@ warnings.filterwarnings('ignore')
 class NASA_Anomaly(Dataset):
     def __init__(self, root_path, flag='train', size=None, 
                  features='M', data_path='SMAP', 
-                 target=0, scale=True):
+                 target=1, scale=True):
         # size [seq_len, label_len pred_len]
         # info
         if size == None:
@@ -57,29 +57,38 @@ class NASA_Anomaly(Dataset):
         return shape: (([train_size, x_dim], [train_size] or None), ([test_size, x_dim], [test_size]))
         """
         
-        x_dim = self.get_data_dim(self.data_path)
+        x_dim = 240#self.get_data_dim(self.data_path)
+        
         if self.flag == 'train':
-            f = open(os.path.join(self.root_path, self.data_path, '{}_train.pkl'.format(self.data_path)), "rb")
-            data = pickle.load(f).reshape((-1, x_dim))
-            f.close()
+            file_path = os.path.join(self.root_path, 'train_old.csv')
+            data = pd.read_csv(file_path)
+            print(data.shape)
+            data = data.values.reshape((-1, x_dim))
+        #     f = open(os.path.join(self.root_path, self.data_path, '{}_train.pkl'.format(self.data_path)), "rb")
+        #     data = pickle.load(f).reshape((-1, x_dim))
+        #     f.close()
         elif self.flag in ['val', 'test']:
             try:
-                f = open(os.path.join(self.root_path, self.data_path, '{}_test.pkl'.format(self.data_path)), "rb")
-                data = pickle.load(f).reshape((-1, x_dim))
-                f.close()
+                file_path = os.path.join(self.root_path, 'test10.csv')
+                data = pd.read_csv(file_path).values.reshape((-1, 240))
+                # f = open(os.path.join(self.root_path, self.data_path, '{}_test.pkl'.format(self.data_path)), "rb")
+                # data = pickle.load(f).reshape((-1, x_dim))
+                # f.close()
             except (KeyError, FileNotFoundError):
                 data = None
             try:
-                f = open(os.path.join(self.root_path, self.data_path, '{}_test_label.pkl'.format(self.data_path)), "rb")
-                label = pickle.load(f).reshape((-1))
-                f.close()
+                # f = open(os.path.join(self.root_path, self.data_path, '{}_test_label.pkl'.format(self.data_path)), "rb")
+                # label = pickle.load(f).reshape((-1))
+                # f.close()
+                file_path = os.path.join(self.root_path, 'labels.csv')
+                label = pd.read_csv(file_path).values.reshape((-1))
             except (KeyError, FileNotFoundError):
                 label = None
             assert len(data) == len(label), "length of test data shoube the same as label"
         if self.scale:
             data = self.preprocess(data)
 
-        df_stamp = pd.DataFrame(columns=['date'])
+        df_stamp = pd.DataFrame(columns=['date'], dtype='datetime64[ns]')
         date = pd.date_range(start='1/1/2015', periods=len(data), freq='4s')
         df_stamp['date'] = date
         df_stamp['month'] = df_stamp.date.apply(lambda row:row.month,1)
@@ -89,7 +98,7 @@ class NASA_Anomaly(Dataset):
         df_stamp['minute'] = df_stamp.date.apply(lambda row:row.minute,1)
         # df_stamp['minute'] = df_stamp.minute.map(lambda x:x//10)
         df_stamp['second'] = df_stamp.date.apply(lambda row:row.second,1)
-        data_stamp = df_stamp.drop(['date'],1).values
+        data_stamp = df_stamp.drop(['date'],axis=1).values
 
         if self.flag == 'train':
             if self.features=='M':

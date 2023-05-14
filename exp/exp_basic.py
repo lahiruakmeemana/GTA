@@ -13,13 +13,13 @@ class Exp_Basic(object):
         return None
     
     def _acquire_device(self):
-        if self.args.use_gpu:
-            os.environ["CUDA_VISIBLE_DEVICES"] = str(self.args.gpu)
-            device = torch.device('cuda:0')
-            print('Use GPU: cuda:0')
-        else:
-            device = torch.device('cpu')
-            print('Use CPU')
+        # if self.args.use_gpu:
+        #     os.environ["CUDA_VISIBLE_DEVICES"] = str(self.args.gpu)
+        #     device = torch.device('cuda:0')
+        #     print('Use GPU: cuda:0')
+        # else:
+        device = torch.device('cpu')
+        print('Use CPU')
         return device
 
     def _get_data(self):

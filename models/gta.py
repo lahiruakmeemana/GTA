@@ -1,7 +1,7 @@
 import torch
 from torch.nn import Sequential as Seq, Linear, ReLU, Parameter
 from torch_geometric.nn import MessagePassing, GCNConv
-from torch_geometric.nn.conv.gcn_conv import gcn_norm
+# import torch_geometric.nn.conv.gcn_conv
 from torch_geometric.nn.inits import glorot, zeros
 from torch_geometric.utils import remove_self_loops, add_self_loops
 from models.model import Informer
@@ -54,9 +54,9 @@ class AdaGCNConv(MessagePassing):
         # x has shape [N, in_channels]
         # edge_index has shape [2, E]
         if self.normalize:
-            edge_index, edge_weight = gcn_norm(  # yapf: disable
-                            edge_index, edge_weight, x.size(self.node_dim),
-                            self.improved, self.add_self_loops, dtype=x.dtype)
+            edge_index, edge_weight = GCNConv.norm(  # yapf: disable
+                            edge_index, x.size(self.node_dim), edge_weight,
+                            self.improved, dtype=x.dtype)
 
         z = torch.nn.functional.gumbel_softmax(self.logits, hard=True)
         
@@ -111,7 +111,7 @@ class GraphTemporalEmbedding(torch.nn.Module):
         x = x.permute(0, 2, 1) # >> (bsz, num_nodes, seq_len)
 
         x = self.tc_modules[0](x) # >> (bsz, num_nodes, seq_len)
-        x = self.gc_modules[0](x.transpose(0, 1), self.edge_index).transpose(0, 1) # >> (bsz, num_nodes, seq_len)
+        x = self.gc_module(x.transpose(0, 1), self.edge_index).transpose(0, 1) # >> (bsz, num_nodes, seq_len)
         # output = x
         
         for i in range(1, self.num_levels):
