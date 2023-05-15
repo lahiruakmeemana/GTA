@@ -273,12 +273,14 @@ class Exp_GTA_DAD(Exp_Basic):
         print('specificity new pred: ',specificity)
         print('accuracy new pred: ',accuracy)
         fpr, tpr, thresholds = roc_curve(new_trues, new_preds)
-        print("AUC: ",auc(fpr, tpr))
+        area = auc(fpr, tpr)
+        print("AUC: ",area)
 
         mae, mse, rmse, mape, mspe = metric(preds, trues)
         print('mse:{}, mae:{}'.format(mse, mae))
 
         # np.save(folder_path+'metrics.npy', np.array([mae, mse, rmse, mape, mspe]))
+        np.save(folder_path+'results.npy', np.array([accuracy, sensitivity, specificity, area]))
         # np.save(folder_path+'pred.npy', preds)
         # np.save(folder_path+'true.npy', trues)
         # np.save(folder_path+'label.npy', labels)
