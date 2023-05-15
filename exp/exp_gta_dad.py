@@ -196,7 +196,7 @@ class Exp_GTA_DAD(Exp_Basic):
 
             adjust_learning_rate(model_optim, epoch+1, self.args)
             
-        best_model_path = "checkpoints/gta_our_ftM_sl12_ll12_pl12_nl3_dm176_nh4_el3_dl2_df176_atprob_ebfixed_test_0/checkpoint.pth" #path+'/'+'checkpoint.pth'
+        best_model_path = path+'/'+'checkpoint.pth'
         self.model.load_state_dict(torch.load(best_model_path))
         
         return self.model
